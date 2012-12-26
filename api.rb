@@ -199,12 +199,15 @@ get '/getfoldercount' do
 
 	existDir = Dir.glob("#{$ftpRootPath}#{entityPath}/*").map { |directory| directory.gsub!("#{$ftpRootPath}#{entityPath}/", "") }
 
+	# Encode condition from UTF-8 to Big5(Remote database encoding is big5)
+	sqlCondition.encode!("Big5", "UTF-8")
+
 	client = TinyTds::Client.new(:username => $dbUsername, :password => $dbPassword, :host => $dbHost, :database => $dbTableName)
 	result = client.execute("SELECT #{sqlSelect} FROM #{sqlFrom} WHERE #{sqlCondition}")
 
 	count = 0
 	result.each { |row|
-		count = count + 1 if existDir.include?(row["Name"].encode("UTF-8", "BIG5"))
+		count = count + 1 if existDir.include?(row["Name"].encode("UTF-8", "Big5"))
 	}
 	return count.to_s
 end
